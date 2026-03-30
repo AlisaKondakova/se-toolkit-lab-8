@@ -1,30 +1,22 @@
 {
-  "agents": {
-    "defaults": {
-      "workspace": "./workspace",
-      "model": "coder-model",
-      "provider": "openai",
-      "maxTokens": 500,
-      "temperature": 0.1,
-      "systemPrompt": "Ты ассистент LMS. КОГДА ПОЛЬЗОВАТЕЛЬ ПРОСИТ 'show me the scores' или 'покажи оценки' без указания лаборатории: НЕ ПОКАЗЫВАЙ ВСЕ ДАННЫЕ. Сначала используй lms_labs(), чтобы получить список лабораторий, затем спроси: 'Какую лабораторию показать? Вот список: [лабы]'. Если пользователь называет лабу, используй lms_pass_rates(lab). Форматируй проценты как '89.1%'. Будь краток."
+  "channels": {
+    "webchat": {
+      "enabled": true,
+      "allow_from": ["*"],
+      "type": "webchat",
+      "host": "0.0.0.0",
+      "port": 8081
     }
   },
   "providers": {
-    "openai": {
-      "apiKey": "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",
-      "apiBase": "http://localhost:42005/v1"
+    "ollama": {
+      "type": "ollama",
+      "apiBase": "http://ollama:11434",
+      "model": "qwen2.5-coder:7b"
     }
   },
-  "tools": {
-    "mcpServers": {
-      "lms": {
-        "command": "python",
-        "args": ["-m", "mcp_lms"],
-        "env": {
-          "NANOBOT_LMS_BACKEND_URL": "http://localhost:42002",
-          "NANOBOT_LMS_API_KEY": "one-two"
-        }
-      }
-    }
+  "gateway": {
+    "host": "0.0.0.0",
+    "port": 8080
   }
 }
