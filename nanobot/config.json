@@ -1,0 +1,22 @@
+{
+  "channels": {
+    "webchat": {
+      "enabled": true,
+      "allow_from": ["*"],
+      "type": "webchat",
+      "host": "0.0.0.0",
+      "port": 8081
+    }
+  },
+  "providers": {
+    "ollama": {
+      "type": "ollama",
+      "apiBase": "http://ollama:11434",
+      "model": "qwen2.5-coder:7b"
+    }
+  },
+  "gateway": {
+    "host": "0.0.0.0",
+    "port": 8080
+  }
+}
