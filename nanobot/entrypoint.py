@@ -8,10 +8,6 @@ def main():
     config_path = Path('/app/nanobot/config.json')
     resolved_path = Path('/app/nanobot/config.resolved.json')
     
-    if not config_path.exists():
-        print(f"Config not found: {config_path}", file=sys.stderr)
-        sys.exit(1)
-    
     with open(config_path, 'r') as f:
         config = json.load(f)
     
@@ -32,10 +28,8 @@ def main():
         json.dump(config, f, indent=2)
     
     print(f"Starting nanobot gateway with config: {resolved_path}")
-    print(f"Channels enabled: {list(config.get('channels', {}).keys())}")
     sys.stdout.flush()
     
-    # Set environment variable for nanobot to find webchat plugin
     os.environ['PYTHONPATH'] = '/app/nanobot:' + os.environ.get('PYTHONPATH', '')
     
     os.execvp("nanobot", ["nanobot", "gateway", "--config", str(resolved_path), "--workspace", "/app/nanobot/workspace"])
