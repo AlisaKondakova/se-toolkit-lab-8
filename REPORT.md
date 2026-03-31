@@ -14,11 +14,10 @@ nanobot-1  |   Created SOUL.md
 nanobot-1  |   Created USER.md
 nanobot-1  |   Created memory/MEMORY.md
 nanobot-1  |   Created memory/HISTORY.md
-nanobot-1  | 2026-03-31 14:01:14.167 | INFO | nanobot.channels.manager:_init_channels:58 - WebChat channel enabled
 nanobot-1  | ✓ Channels enabled: webchat
 nanobot-1  | ✓ Heartbeat: every 1800s
-nanobot-1  | 2026-03-31 14:01:14.772 | INFO | nanobot_webchat.channel:start:72 - WebChat starting on 0.0.0.0:8081
-nanobot-1  | 2026-03-31 14:01:15.263 | INFO | nanobot.agent.loop:run:280 - Agent loop started
+nanobot-1  | 2026-03-31 15:36:18.410 | INFO | nanobot_webchat.channel:start:72 - WebChat starting on 0.0.0.0:8081
+nanobot-1  | 2026-03-31 15:36:18.658 | INFO | nanobot.agent.loop:run:280 - Agent loop started
 ```
 
 Services running:
@@ -28,6 +27,12 @@ se-toolkit-lab-8-caddy-1                Up              0.0.0.0:42002->80/tcp
 se-toolkit-lab-8-client-web-flutter-1   Up              80/tcp
 se-toolkit-lab-8-nanobot-1              Up              0.0.0.0:8080-8081->8080-8081/tcp
 se-toolkit-lab-8-qwen-code-api-1        Up (healthy)    0.0.0.0:42005->8080/tcp
+```
+
+Qwen API health check:
+```
+$ curl http://localhost:42005/health
+{"status":"ok","timestamp":"2026-03-31T15:55:58Z",...}
 ```
 
 ## Task 2B — Web client
@@ -44,7 +49,7 @@ nanobot-1  | 2026-03-31 14:29:37.175 | INFO | nanobot_webchat.channel:_handle_ws
 This proves:
 1. WebSocket connection established successfully
 2. Message "hello" received from Flutter web client
-3. Agent processed the message and generated response
+3. Agent processed the message via LLM
 4. Response sent back to client
 5. Clean disconnect
 
@@ -59,9 +64,9 @@ curl http://localhost:42002/flutter/index.html
 
 # WebSocket endpoint accepts connections
 curl -s -o /dev/null -w "%{http_code}" http://localhost:42002/ws/chat
-# Returns: 400 (expected for non-WebSocket connection)
+# Returns: 426 (Upgrade Required - expected for WebSocket)
 
-# Qwen API health check
+# Qwen API health check - PASS
 curl http://localhost:42005/health
 # Returns: {"status":"ok",...}
 ```
