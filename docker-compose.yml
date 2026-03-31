@@ -10,13 +10,14 @@ services:
       NANOBOT_ACCESS_KEY: mysecretkey123
       NANOBOT_WEBCHAT_CONTAINER_PORT: 8081
       QWEN_API_KEY: ${QWEN_CODE_API_KEY:-}
-      QWEN_BASE_URL: ${QWEN_BASE_URL:-https://dashscope.aliyuncs.com/compatible-mode/v1}
+      QWEN_BASE_URL: http://qwen-code-api:8080/v1
       GATEWAY_BASE_URL: http://backend:42002
       LMS_API_KEY: ${LMS_API_KEY:-}
     networks:
       - lms-network
     depends_on:
       - backend
+      - qwen-code-api
 
   client-web-flutter:
     build: ./nanobot-websocket-channel/client-web-flutter
@@ -45,6 +46,27 @@ services:
       DATABASE_URL: sqlite+aiosqlite:///app/data.db
     volumes:
       - backend-data:/app
+    networks:
+      - lms-network
+
+  qwen-code-api:
+    image: se-toolkit-lab-8-qwen-code-api:latest
+    environment:
+      PORT: ${QWEN_CODE_API_CONTAINER_PORT:-8080}
+      ADDRESS: ${QWEN_CODE_API_CONTAINER_ADDRESS:-0.0.0.0}
+      QWEN_CODE_API_KEY: ${QWEN_CODE_API_KEY:-}
+      QWEN_CODE_AUTH_USE: "true"
+      QWEN_CODE_API_AUTH_USE: "true"
+      QWEN_CODE_API_MODEL: ${QWEN_CODE_API_MODEL:-coder-model}
+      QWEN_CODE_API_LOG_LEVEL: ${QWEN_CODE_API_LOG_LEVEL:-info}
+      QWEN_CODE_API_MAX_RETRIES: ${QWEN_CODE_API_MAX_RETRIES:-3}
+      QWEN_CODE_API_RETRY_DELAY_MS: ${QWEN_CODE_API_RETRY_DELAY_MS:-1000}
+      QWEN_CODE_API_LOG_REQUESTS: ${QWEN_CODE_API_LOG_REQUESTS:-true}
+      DEFAULT_MODEL: ${QWEN_CODE_API_MODEL:-coder-model}
+      MAX_RETRIES: ${QWEN_CODE_API_MAX_RETRIES:-3}
+      RETRY_DELAY_MS: ${QWEN_CODE_API_RETRY_DELAY_MS:-1000}
+      LOG_LEVEL: ${QWEN_CODE_API_LOG_LEVEL:-info}
+      LOG_REQUESTS: ${QWEN_CODE_API_LOG_REQUESTS:-true}
     networks:
       - lms-network
 

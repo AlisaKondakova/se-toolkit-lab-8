@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>LMS Chat</title>
+    <style>
+        body { font-family: Arial; max-width: 800px; margin: 0 auto; padding: 20px; }
+        #chat { height: 400px; border: 1px solid #ccc; overflow-y: auto; padding: 10px; margin-bottom: 10px; background: #f9f9f9; }
+        .user { text-align: right; color: blue; margin: 5px; padding: 5px; background: #e3f2fd; border-radius: 5px; }
+        .bot { text-align: left; color: green; margin: 5px; padding: 5px; background: #f1f8e9; border-radius: 5px; }
+        #input { width: 70%; padding: 10px; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        #login { margin: 50px auto; text-align: center; max-width: 400px; }
+        input { padding: 10px; margin: 10px; width: 80%; }
+        .error { color: red; margin: 10px; }
+        .status { font-size: 12px; color: gray; margin: 5px; }
+    </style>
+</head>
+<body>
+    <div id="login">
+        <h2>LMS Chat Agent Login</h2>
+        <input type="password" id="accessKey" placeholder="Enter Access Key" value="mysecretkey123">
+        <button onclick="connect()">Connect</button>
+        <div id="error" class="error"></div>
+    </div>
+    <div id="chatContainer" style="display:none;">
+        <h2>LMS Chat Agent</h2>
+        <div id="status" class="status">Connecting...</div>
+        <div id="chat"></div>
+        <input type="text" id="input" placeholder="Type your message..." onkeypress="if(event.keyCode==13) send()">
+        <button onclick="send()">Send</button>
+    </div>
+    <script>
+        let ws = null;
+        
+        function connect() {
+            const key = document.getElementById('accessKey').value;
+            if (!key) {
+                document.getElementById('error').innerText = 'Enter access key';
+                return;
+            }
+            
+            // Подключаемся к порту 8081 напрямую
+            const wsUrl = `ws://${window.location.hostname}:8081?access_key=${key}`;
+            document.getElementById('error').innerText = 'Connecting...';
+            console.log('Connecting to:', wsUrl);
+            
+            ws = new WebSocket(wsUrl);
+            
+            ws.onopen = () => {
+                document.getElementById('login').style.display = 'none';
+                document.getElementById('chatContainer').style.display = 'block';
+                document.getElementById('status').innerHTML = 'Connected ✓';
+                document.getElementById('status').style.color = 'green';
+                addMessage('Connected! Ask me anything about the LMS system.', 'bot');
+            };
+            
+            ws.onmessage = (e) => {
+                console.log('Received:', e.data);
+                try {
+                    const data = JSON.parse(e.data);
+                    addMessage(data.content || data.message || 'Response received', 'bot');
+                } catch(e) {
+                    addMessage(e.data, 'bot');
+                }
+            };
+            
+            ws.onerror = (err) => {
+                console.error('WebSocket error:', err);
+                document.getElementById('error').innerText = 'Connection failed! Check if nanobot is running on port 8081';
+            };
+            
+            ws.onclose = () => {
+                console.log('WebSocket closed');
+                document.getElementById('status').innerHTML = 'Disconnected ✗';
+                document.getElementById('status').style.color = 'red';
+            };
+        }
+        
+        function send() {
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                alert('Not connected!');
+                return;
+            }
+            const input = document.getElementById('input');
+            const msg = input.value.trim();
+            if (!msg) return;
+            addMessage(msg, 'user');
+            ws.send(JSON.stringify({content: msg}));
+            input.value = '';
+        }
+        
+        function addMessage(text, sender) {
+            const chat = document.getElementById('chat');
+            const div = document.createElement('div');
+            div.className = sender;
+            div.textContent = text;
+            chat.appendChild(div);
+            chat.scrollTop = chat.scrollHeight;
+        }
+    </script>
+</body>
+</html>

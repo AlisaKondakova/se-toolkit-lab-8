@@ -1,0 +1,23 @@
+services:
+  nanobot:
+    build: ./nanobot
+    ports:
+      - "8081:8081"
+    environment:
+      NANOBOT_ACCESS_KEY: mysecretkey123
+
+  client-web-flutter:
+    image: nginx:alpine
+    volumes:
+      - ./web-client/flutter:/usr/share/nginx/html:ro
+
+  caddy:
+    image: caddy:latest
+    ports:
+      - "42003:80"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./web-client/flutter:/srv/flutter:ro
+    depends_on:
+      - nanobot
+      - client-web-flutter

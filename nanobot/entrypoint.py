@@ -12,7 +12,7 @@ def main():
     
     # Get environment variables
     api_key = os.environ.get("QWEN_API_KEY", "")
-    base_url = os.environ.get("QWEN_BASE_URL", "https://dashscope.aliyuncs.com/compatible-mode/v1")
+    base_url = os.environ.get("QWEN_BASE_URL", "http://qwen-code-api:8080/v1")
     gateway_port = int(os.environ.get("NANOBOT_GATEWAY_CONTAINER_PORT", "8080"))
     webchat_port = int(os.environ.get("NANOBOT_WEBCHAT_CONTAINER_PORT", "8081"))
     access_key = os.environ.get("NANOBOT_ACCESS_KEY", "mysecretkey123")
@@ -22,7 +22,7 @@ def main():
     # Create config for nanobot (matching schema)
     config = {
         "providers": {
-            "dashscope": {
+            "openai": {
                 "apiKey": api_key,
                 "apiBase": base_url
             }
@@ -52,8 +52,8 @@ def main():
         },
         "agents": {
             "defaults": {
-                "provider": "dashscope",
-                "model": "qwen-coder"
+                "provider": "openai",
+                "model": "coder-model"
             }
         }
     }
@@ -63,7 +63,7 @@ def main():
         json.dump(config, f, indent=2)
     
     print(f"Starting nanobot gateway")
-    print(f"  - API Key: {api_key[:3]}***" if api_key else "  - API Key: (empty)")
+    print(f"  - API Key: {api_key[:10]}***" if api_key else "  - API Key: (empty)")
     print(f"  - Base URL: {base_url}")
     print(f"  - Gateway Port: {gateway_port}")
     print(f"  - Webchat Port: {webchat_port}")

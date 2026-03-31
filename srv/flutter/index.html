@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head><title>LMS Chat</title></head>
+<body>
+    <h1>LMS Chat Agent</h1>
+    <div id="status">Ready</div>
+    <input type="text" id="msg" placeholder="Type message">
+    <button onclick="send()">Send</button>
+    <div id="output"></div>
+    <script>
+        const key = "mysecretkey123";
+        const ws = new WebSocket(`ws://${window.location.hostname}:42003/ws/chat?access_key=${key}`);
+        ws.onmessage = (e) => {
+            document.getElementById('output').innerHTML += '<div>Bot: ' + e.data + '</div>';
+        };
+        function send() {
+            const msg = document.getElementById('msg').value;
+            ws.send(JSON.stringify({content: msg}));
+            document.getElementById('output').innerHTML += '<div>You: ' + msg + '</div>';
+        }
+    </script>
+</body>
+</html>
