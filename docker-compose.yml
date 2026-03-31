@@ -17,7 +17,11 @@ services:
       - "42003:80"
     volumes:
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
-      - ./web-client/flutter:/srv/flutter:ro
+      - client-web-flutter:/srv/flutter:ro
     depends_on:
       - nanobot
       - client-web-flutter
+
+volumes:
+  client-web-flutter:
+    driver: local

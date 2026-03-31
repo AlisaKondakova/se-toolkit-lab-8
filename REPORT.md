@@ -21,3 +21,17 @@ nanobot-1  | Received: What labs are available?
 nanobot-1  | Response: Available labs: Lab 1: Introduction to Containers, Lab 2: Docker Compose, Lab 3: Kubernetes Basics
 $ echo '{"content":"What labs are available?"}' | websocat "ws://localhost:8081?access_key=mysecretkey123"
 {"content": "Available labs: Lab 1: Introduction to Containers, Lab 2: Docker Compose, Lab 3: Kubernetes Basics"}
+
+## Task 2A
+```
+nanobot-1  | INFO:__main__:Starting WS server on port 8081, key: mys***
+nanobot-1  | INFO:websockets.server:server listening on 0.0.0.0:8081
+nanobot-1  | INFO:websockets.server:connection open
+nanobot-1  | INFO:websockets.server:connection open
+
+```
+
+## Task 2B
+```
+
+```
