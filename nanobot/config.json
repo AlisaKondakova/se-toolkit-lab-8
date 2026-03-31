@@ -1,6 +1,29 @@
 {
-  "providers": {"qwen-code-api": {"type": "openai", "apiBase": "http://qwen-code-api:8000/v1", "apiKey": "", "model": "qwen2.5-coder:7b"}},
-  "channels": {"webchat": {"enabled": true, "allow_from": ["*"], "host": "0.0.0.0", "port": 8081, "access_key": ""}},
-  "gateway": {"host": "0.0.0.0", "port": 8080},
-  "agent": {"name": "edu", "provider": "qwen-code-api", "model": "qwen2.5-coder:7b", "system_prompt": "Helpful assistant."}
+  "providers": {
+    "qwen-code-api": {
+      "type": "openai",
+      "apiBase": "http://qwen-code-api:8000/v1",
+      "apiKey": "",
+      "model": "qwen2.5-coder:7b"
+    }
+  },
+  "channels": {
+    "webchat": {
+      "enabled": true,
+      "allow_from": ["*"],
+      "host": "0.0.0.0",
+      "port": 8081,
+      "access_key": ""
+    }
+  },
+  "gateway": {
+    "host": "0.0.0.0",
+    "port": 8080
+  },
+  "agent": {
+    "name": "edu",
+    "provider": "qwen-code-api",
+    "model": "qwen2.5-coder:7b",
+    "system_prompt": "Helpful assistant."
+  }
 }

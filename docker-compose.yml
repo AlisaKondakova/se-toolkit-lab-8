@@ -1,27 +1,57 @@
 services:
   nanobot:
-    build: ./nanobot
+    build:
+      context: .
+      dockerfile: nanobot/Dockerfile
     ports:
+      - "8080:8080"
       - "8081:8081"
     environment:
       NANOBOT_ACCESS_KEY: mysecretkey123
+      NANOBOT_WEBCHAT_CONTAINER_PORT: 8081
+      QWEN_API_KEY: ${QWEN_CODE_API_KEY:-}
+      QWEN_BASE_URL: ${QWEN_BASE_URL:-https://dashscope.aliyuncs.com/compatible-mode/v1}
+      GATEWAY_BASE_URL: http://backend:42002
+      LMS_API_KEY: ${LMS_API_KEY:-}
+    networks:
+      - lms-network
+    depends_on:
+      - backend
 
   client-web-flutter:
-    image: nginx:alpine
-    volumes:
-      - ./web-client/flutter:/usr/share/nginx/html:ro
+    build: ./nanobot-websocket-channel/client-web-flutter
+    networks:
+      - lms-network
 
   caddy:
     image: caddy:latest
     ports:
-      - "42003:80"
+      - "42002:80"
     volumes:
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
-      - client-web-flutter:/srv/flutter:ro
+      - ./nanobot-websocket-channel/client-web-flutter/web:/srv/flutter:ro
+    environment:
+      NANOBOT_WEBCHAT_CONTAINER_PORT: 8081
     depends_on:
       - nanobot
       - client-web-flutter
+    networks:
+      - lms-network
+
+  backend:
+    image: se-toolkit-lab-8-backend
+    build: ./backend
+    environment:
+      DATABASE_URL: sqlite+aiosqlite:///app/data.db
+    volumes:
+      - backend-data:/app
+    networks:
+      - lms-network
+
+networks:
+  lms-network:
+    driver: bridge
 
 volumes:
-  client-web-flutter:
+  backend-data:
     driver: local

@@ -1,0 +1,24 @@
+# Ignore common files
+.DS_Store
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+venv/
+.venv/
+
+# Ignore git and config files
+.git/
+.gitignore
+.env
+.envrc
+
+# Ignore tests and docs
+tests/
+docs/
+
+# Ignore markdown files
+*.md
+
+# Don't ignore workspace - needed for build
+!workspace/
