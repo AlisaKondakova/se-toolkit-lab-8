@@ -1,8 +1,11 @@
-:42002 {
-    handle /ws/chat {
-        reverse_proxy http://nanobot:8081
+:80 {
+    handle /ws/chat* {
+        reverse_proxy http://nanobot:8081 {
+            transport websockets
+        }
     }
-    handle_path /flutter* {
+
+    handle_path /flutter/* {
         root * /srv/flutter
         try_files {path} /index.html
         file_server

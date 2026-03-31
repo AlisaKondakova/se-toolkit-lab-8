@@ -1,40 +1,76 @@
 #!/usr/bin/env python3
-import os, sys, json, re, asyncio, websockets, logging
-from pathlib import Path
-from urllib.parse import parse_qs, urlparse
+"""
+Entrypoint for nanobot Docker container.
+Creates config.json from environment variables and launches nanobot gateway.
+"""
+import os
+import json
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+def main():
+    workspace_path = "/app/nanobot/workspace"
+    config_path = "/app/nanobot/config.dynamic.json"
+    
+    # Get environment variables
+    api_key = os.environ.get("QWEN_API_KEY", "")
+    base_url = os.environ.get("QWEN_BASE_URL", "https://dashscope.aliyuncs.com/compatible-mode/v1")
+    gateway_port = int(os.environ.get("NANOBOT_GATEWAY_CONTAINER_PORT", "8080"))
+    webchat_port = int(os.environ.get("NANOBOT_WEBCHAT_CONTAINER_PORT", "8081"))
+    access_key = os.environ.get("NANOBOT_ACCESS_KEY", "mysecretkey123")
+    gateway_base_url = os.environ.get("GATEWAY_BASE_URL", "http://backend:42002")
+    lms_api_key = os.environ.get("LMS_API_KEY", "")
+    
+    # Create config for nanobot (matching schema)
+    config = {
+        "providers": {
+            "dashscope": {
+                "apiKey": api_key,
+                "apiBase": base_url
+            }
+        },
+        "gateway": {
+            "host": "0.0.0.0",
+            "port": gateway_port
+        },
+        "channels": {
+            "webchat": {
+                "enabled": True,
+                "host": "0.0.0.0",
+                "port": webchat_port,
+                "access_key": access_key
+            }
+        },
+        "tools": {
+            "mcpServers": {
+                "lms": {
+                    "type": "sse",
+                    "url": gateway_base_url,
+                    "headers": {
+                        "Authorization": f"Bearer {lms_api_key}"
+                    }
+                }
+            }
+        },
+        "agents": {
+            "defaults": {
+                "provider": "dashscope",
+                "model": "qwen-coder"
+            }
+        }
+    }
+    
+    # Write config
+    with open(config_path, "w") as f:
+        json.dump(config, f, indent=2)
+    
+    print(f"Starting nanobot gateway")
+    print(f"  - API Key: {api_key[:3]}***" if api_key else "  - API Key: (empty)")
+    print(f"  - Base URL: {base_url}")
+    print(f"  - Gateway Port: {gateway_port}")
+    print(f"  - Webchat Port: {webchat_port}")
+    print(f"  - Gateway Base URL: {gateway_base_url}")
+    
+    # Launch nanobot gateway with config
+    os.execvp("nanobot", ["nanobot", "gateway", "--config", config_path, "--workspace", workspace_path, "--port", str(gateway_port)])
 
-ACCESS_KEY = os.environ.get('NANOBOT_ACCESS_KEY', '')
-PORT = int(os.environ.get('NANOBOT_WEBCHAT_CONTAINER_PORT', '8081'))
-
-async def handler(ws, path=None):
-    try:
-        p = path or getattr(ws, 'path', '')
-        q = parse_qs(urlparse(p).query)
-        k = q.get('access_key', [None])[0] or ''
-        if k != ACCESS_KEY:
-            await ws.send(json.dumps({'error': 'Invalid key'}))
-            await ws.close()
-            return
-        logger.info('Client connected')
-        async for msg in ws:
-            d = json.loads(msg)
-            c = d.get('content', '')
-            logger.info(f'Received: {c[:50]}')
-            await ws.send(json.dumps({'content': f'Echo: {c}'}))
-    except Exception as e:
-        logger.error(f'Error: {e}')
-
-async def main():
-    cfg = Path('/app/nanobot/config.json')
-    txt = cfg.read_text()
-    txt = re.sub(r'\$\{([^}]+)\}', lambda m: os.environ.get(m.group(1), ''), txt)
-    cfg.write_text(txt)
-    logger.info(f'Starting WS server on port {PORT}, key: {ACCESS_KEY[:3]}***')
-    async with websockets.serve(handler, '0.0.0.0', PORT):
-        await asyncio.Future()
-
-if __name__ == '__main__':
-    asyncio.run(main())
+if __name__ == "__main__":
+    main()
