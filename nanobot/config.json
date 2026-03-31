@@ -1,36 +1,6 @@
 {
-  "providers": {
-    "qwen-code-api": {
-      "type": "openai",
-      "apiBase": "${QWEN_API_BASE}",
-      "apiKey": "${QWEN_API_KEY}",
-      "model": "qwen2.5-coder:7b"
-    }
-  },
-  "channels": {
-    "webchat": {
-      "enabled": true,
-      "allow_from": ["*"]
-    }
-  },
-  "gateway": {
-    "host": "0.0.0.0",
-    "port": 8080
-  },
-  "agent": {
-    "name": "edu-assistant",
-    "provider": "qwen-code-api",
-    "model": "qwen2.5-coder:7b",
-    "system_prompt": "You are a helpful educational assistant."
-  },
-  "mcpServers": {
-    "lms-backend": {
-      "command": "python",
-      "args": ["-m", "mcp.server", "mcp/lms_backend.py"],
-      "env": {
-        "LMS_API_BASE_URL": "${LMS_API_BASE_URL}",
-        "LMS_API_KEY": "${LMS_API_KEY}"
-      }
-    }
-  }
+  "providers": {"qwen-code-api": {"type": "openai", "apiBase": "http://qwen-code-api:8000/v1", "apiKey": "", "model": "qwen2.5-coder:7b"}},
+  "channels": {"webchat": {"enabled": true, "allow_from": ["*"], "host": "0.0.0.0", "port": 8081, "access_key": ""}},
+  "gateway": {"host": "0.0.0.0", "port": 8080},
+  "agent": {"name": "edu", "provider": "qwen-code-api", "model": "qwen2.5-coder:7b", "system_prompt": "Helpful assistant."}
 }
