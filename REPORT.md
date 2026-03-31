@@ -27,6 +27,7 @@ NAME                                    STATUS          PORTS
 se-toolkit-lab-8-caddy-1                Up              0.0.0.0:42002->80/tcp
 se-toolkit-lab-8-client-web-flutter-1   Up              80/tcp
 se-toolkit-lab-8-nanobot-1              Up              0.0.0.0:8080-8081->8080-8081/tcp
+se-toolkit-lab-8-qwen-code-api-1        Up (healthy)    0.0.0.0:42005->8080/tcp
 ```
 
 ## Task 2B — Web client
@@ -50,31 +51,7 @@ This proves:
 Flutter web client accessible at: http://localhost:42002/flutter
 Access key: mysecretkey123
 
-<<<<<<< HEAD
-<!-- Screenshots: healthy trace span hierarchy, error trace -->
-
-## Task 3C — Observability MCP tools
-
-<!-- Paste agent responses to "any errors in the last hour?" under normal and failure conditions -->
-
-## Task 4A — Multi-step investigation
-
-<!-- Paste the agent's response to "What went wrong?" showing chained log + trace investigation -->
-
-## Task 4B — Proactive health check
-
-<!-- Screenshot or transcript of the proactive health report that appears in the Flutter chat -->
-
-<img width="1920" height="1200" alt="toolkit" src="https://github.com/user-attachments/assets/386168ab-513a-4252-a5f5-14a4b25ee57e" />
-
-## Task 4C — Bug fix and recovery
-
-<!-- 1. Root cause identified
-     2. Code fix (diff or description)
-     3. Post-fix response to "What went wrong?" showing the real underlying failure
-     4. Healthy follow-up report or transcript after recovery -->
-### Проверка статуса сервисов
-=======
+Verification commands:
 ```bash
 # Flutter serves content
 curl http://localhost:42002/flutter/index.html
@@ -83,4 +60,8 @@ curl http://localhost:42002/flutter/index.html
 # WebSocket endpoint accepts connections
 curl -s -o /dev/null -w "%{http_code}" http://localhost:42002/ws/chat
 # Returns: 400 (expected for non-WebSocket connection)
+
+# Qwen API health check
+curl http://localhost:42005/health
+# Returns: {"status":"ok",...}
 ```
