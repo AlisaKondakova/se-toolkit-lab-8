@@ -43,6 +43,8 @@ Paste your checkpoint evidence below. Add screenshots as image files in the repo
 
 <!-- Screenshot or transcript of the proactive health report that appears in the Flutter chat -->
 
+<img width="1920" height="1200" alt="toolkit" src="https://github.com/user-attachments/assets/386168ab-513a-4252-a5f5-14a4b25ee57e" />
+
 ## Task 4C — Bug fix and recovery
 
 <!-- 1. Root cause identified
