@@ -1,0 +1,5 @@
+:42003 {
+    handle /ws/chat {
+        reverse_proxy nanobot:8081
+    }
+}
