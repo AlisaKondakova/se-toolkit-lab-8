@@ -1,58 +1,77 @@
 # Observability Skill
 
-This skill enables the agent to query logs and traces using MCP tools to investigate errors and system behavior.
+You have access to observability tools that let you query VictoriaLogs and VictoriaTraces.
 
-## Capabilities
+## Available Tools
 
-The agent can:
-- Search logs with LogsQL queries
-- Count errors per service over time windows
-- List recent traces for services
-- Fetch detailed trace hierarchies with timing information
+### Log Tools (VictoriaLogs)
 
-## Usage Guidelines
+- **logs_search(query, limit)**: Search logs using LogsQL
+  - `query`: LogsQL query string (e.g., "level:error", "_stream:{service=\"backend\"}", "db_query AND error")
+  - `limit`: Max entries to return (default 100)
+  - Use this when user asks about errors, warnings, or specific events
 
-### When to Use Observability
+- **logs_error_count(service, hours)**: Count errors per service
+  - `service`: Service name or "*" for all (default "*")
+  - `hours`: Time window in hours (default 1)
+  - Use this when user asks "any errors?" or "how many errors?"
 
-Use these tools when:
-- User asks about errors, failures, or system health
-- User mentions specific services (backend, auth, etc.)
-- User asks "what happened" after a request
-- User wants to investigate performance issues
+### Trace Tools (VictoriaTraces)
 
-### Tool Workflow
+- **traces_list(service, limit)**: List recent traces for a service
+  - `service`: Service name (default "backend")
+  - `limit`: Max traces to return (default 10)
+  - Use this to see recent request flows
 
-1. **Start with error count** - Use `logs_error_count` to see if there are errors
-2. **Search logs** - Use `logs_search` to find specific error patterns
-3. **Find trace IDs** - Extract trace IDs from log entries
-4. **Fetch traces** - Use `traces_get` to see complete request flow
-5. **List traces** - Use `traces_list` to see recent activity for a service
+- **traces_get(trace_id)**: Fetch full trace details
+  - `trace_id`: The trace ID to fetch
+  - Use this when you find a trace ID in logs and need full context
 
-### Example Queries
+## When to Use
 
-**Check for recent errors:**
+### One-Shot Investigation Flow (for "What went wrong?" or "Check system health")
 
-### Response Format
+When the user asks about a failure or system health, follow this exact sequence:
 
-When reporting observability findings:
-1. Start with summary (e.g., "Found 5 errors in the last hour")
-2. List errors by service
-3. Provide sample error messages
-4. If trace IDs found, offer to fetch detailed traces
-5. Keep responses concise - don't dump raw JSON
+1. **First**: Call `logs_error_count(service="*", hours=1)` to get an overview
+2. **If errors found**: Call `logs_search(query="level:error", limit=20)` to see recent errors
+3. **Look for trace_id** in the error logs (search for patterns like `trace_id=...` or `traceID`)
+4. **If trace_id found**: Call `traces_get(trace_id="...")` to fetch full trace details
+5. **Summarize findings** in plain language:
+   - What failed (from logs)
+   - Where it failed (from trace spans)
+   - Root cause hypothesis
 
-### LogsQL Query Patterns
+### Other Scenarios
 
-Common queries:
-- `level:error` - All errors
-- `service:backend AND level:error` - Backend errors only
-- `_time: now-1h AND level:error` - Errors in last hour
-- `event:db_query AND error:*` - Database query errors
-- `*connection*` - Any logs containing "connection"
+1. **User asks about errors**: "Any errors?", "What failed?", "Show me errors"
+   - First call `logs_error_count(service="*", hours=1)` to get overview
+   - Then call `logs_search(query="level:error", limit=10)` to see details
 
-## MCP Tools Available
+2. **User asks about a specific service**: "Is backend working?"
+   - Call `logs_search(query="_stream:{service=\"backend\"} AND level:error", limit=10)`
+   - Call `traces_list(service="backend", limit=5)` to see recent traces
 
-- `logs_search` - Query logs with LogsQL
-- `logs_error_count` - Count errors by service
-- `traces_list` - List recent traces for a service
-- `traces_get` - Fetch detailed trace by ID
+3. **User asks about a request flow**: "What happened to my request?"
+   - Call `traces_list(service="backend", limit=5)` to find recent traces
+   - If you find a relevant trace, call `traces_get(trace_id=...)` for details
+
+4. **Debugging a failure**: "Why did this fail?"
+   - Search for errors: `logs_search(query="level:error", limit=20)`
+   - Look for trace IDs in error logs
+   - Fetch the trace: `traces_get(trace_id=...)`
+
+## Response Style
+
+- Summarize findings concisely — don't dump raw JSON
+- Highlight the key issue (e.g., "Found 5 errors in backend in the last hour")
+- If you find a trace ID, mention it and offer to fetch details
+- If no errors found, say so clearly (e.g., "No errors found in the last hour")
+
+## Example LogsQL Queries
+
+- All errors: `level:error`
+- Backend errors: `level:error AND service="backend"`
+- Database errors: `db_query AND error`
+- Specific time: `level:error AND _time > now()-1h`
+- By stream: `_stream:{service="backend"}`
