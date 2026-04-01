@@ -37,7 +37,9 @@ nanobot-1  | 2026-04-01 22:27:11.875 | INFO     | nanobot.agent.loop:run:280 - A
    - Agent loop running and ready to process messages
 
 ### Test Results
-```bash
+```<img width="1920" height="1200" alt="toolkit" src="https://github.com/user-attachments/assets/e9e62380-0079-4b09-9892-747759fc9982" />
+bash
+
 # Flutter main.dart.js - PASS
 curl -sf http://localhost:42002/flutter/main.dart.js | head -1
 # Output: (function dartProgram(){function copyProperties(a,b){var s=Object.keys(a)
