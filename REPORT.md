@@ -104,11 +104,13 @@ MCP server 'obs': connected, 4 tools registered
 
 Query screenshot:
 
-![Task 3 VictoriaTraces query screenshot](artifacts/task3/task3-victoriatraces-query.png)
+<img width="1920" height="1200" alt="toolkit" src="https://github.com/user-attachments/assets/1878628c-6bc5-48c0-b39e-ddeec4c38cc9" />
+
 
 Result screenshot:
 
-![Task 3 VictoriaTraces result screenshot](artifacts/task3/task3-victoriatraces-result.png)
+<img width="1920" height="1200" alt="toolkit" src="https://github.com/user-attachments/assets/4e626023-7fd8-4454-953b-ac49f9f72964" />
+
 
 ### Nanobot answer evidence
 
@@ -117,7 +119,7 @@ Nanobot successfully answered the scoped observability question:
 
 Screenshot:
 
-![Task 3 Nanobot success screenshot](artifacts/task3/task3-nanobot-success.png)
+
 
 Observed answer:
 > Good news! There are **no LMS backend errors** in the last 10 minutes. Both the error count and log search returned empty results, indicating the LMS service has been running without errors during that period.
@@ -142,7 +144,7 @@ On the next cron cycle, nanobot proactively posted a health report into the same
 
 Screenshot of the proactive report:
 
-![Task 4B proactive report](artifacts/task4/task4b-proactive-report.png)
+
 
 
 ## Task 4C — Bug fix and recovery
@@ -176,7 +178,6 @@ This time, the result no longer followed the buggy `404 Items not found` failure
 
 Screenshot:
 
-![Task 4C post-fix failure investigation](artifacts/task4/task4c-postfix-what-went-wrong.png)
 
 ### Healthy follow-up
 
@@ -186,5 +187,4 @@ The later scheduled health report showed that the system looked healthy again.
 
 Screenshot:
 
-![Task 4C healthy follow-up](artifacts/task4/task4c-healthy-report.png)
 
