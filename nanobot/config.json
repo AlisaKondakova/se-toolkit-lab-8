@@ -1,29 +1,48 @@
 {
   "providers": {
-    "qwen-code-api": {
-      "type": "openai",
-      "apiBase": "http://qwen-code-api:8000/v1",
-      "apiKey": "",
-      "model": "qwen2.5-coder:7b"
+    "openai": {
+      "apiKey": "${NANOBOT_LLM_API_KEY}",
+      "apiBase": "${NANOBOT_LLM_BASE_URL}"
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": "coder-model",
+      "provider": "openai",
+      "workspace": "./workspace"
     }
   },
   "channels": {
+    "sendProgress": true,
+    "sendToolHints": false,
     "webchat": {
       "enabled": true,
+      "address": "0.0.0.0",
+      "port": "${NANOBOT_WEBCHAT_CONTAINER_PORT}",
       "allow_from": ["*"],
-      "host": "0.0.0.0",
-      "port": 8081,
-      "access_key": ""
+      "access_key": "${NANOBOT_ACCESS_KEY}"
     }
   },
-  "gateway": {
-    "host": "0.0.0.0",
-    "port": 8080
-  },
-  "agent": {
-    "name": "edu",
-    "provider": "qwen-code-api",
-    "model": "qwen2.5-coder:7b",
-    "system_prompt": "Helpful assistant."
+  "tools": {
+    "mcpServers": {
+      "lms": {
+        "command": "python",
+        "args": ["-m", "mcp_lms.server"],
+        "cwd": "/app/nanobot/mcp",
+        "env": {
+          "GATEWAY_BASE_URL": "${GATEWAY_BASE_URL}",
+          "LMS_API_KEY": "${LMS_API_KEY}"
+        }
+      },
+      "observability": {
+        "command": "python",
+        "args": ["-m", "observability_server"],
+        "cwd": "/app/mcp",
+        "env": {
+          "VICTORIALOGS_URL": "http://victorialogs:9428",
+          "VICTORIATRACES_URL": "http://victoriatraces:10428"
+        }
+      }
+    }
   }
 }

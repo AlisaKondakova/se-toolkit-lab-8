@@ -1,0 +1,35 @@
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+      grpc:
+        endpoint: 0.0.0.0:4317
+
+processors:
+  batch:
+    timeout: 1s
+    send_batch_size: 1024
+
+exporters:
+  otlphttp/victorialogs:
+    endpoint: http://victorialogs:9428
+    logs_endpoint: http://victorialogs:9428/insert/0/otlp
+
+  otlphttp/victoriatraces:
+    endpoint: http://victoriatraces:8428
+    traces_endpoint: http://victoriatraces:8428/api/v0.1/traces
+
+  debug:
+    verbosity: detailed
+
+service:
+  pipelines:
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlphttp/victorialogs, debug]
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlphttp/victoriatraces, debug]
