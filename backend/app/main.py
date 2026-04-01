@@ -12,7 +12,7 @@ from starlette.middleware.base import RequestResponseEndpoint
 from starlette.responses import Response
 
 from app.auth import verify_api_key
-from app.routers import analytics, interactions, items, learners, pipeline
+from app.routers import analytics, health, interactions, items, learners, pipeline
 from app.settings import settings
 
 logger = logging.getLogger(__name__)
@@ -24,6 +24,18 @@ async def lifespan(app: FastAPI):
     # (via OTEL_LOGS_EXPORTER=otlp). We only need to fix uvicorn.access, which has
     # propagate=False by default, so its HTTP access lines reach the OTel handler.
     logging.getLogger("uvicorn.access").propagate = True
+    
+    # Check database connection at startup
+    from sqlmodel import select, SQLModel
+    from app.database import engine
+    async with engine.connect() as conn:
+        try:
+            await conn.execute(select(1))
+            logger.info("Database connection successful")
+        except Exception as exc:
+            logger.error(f"Database connection failed: {exc}")
+            raise
+    
     yield
 
 
@@ -90,6 +102,13 @@ app.include_router(
     items.router,
     prefix="/items",
     tags=["items"],
+    dependencies=[Depends(verify_api_key)],
+)
+
+app.include_router(
+    health.router,
+    prefix="/health",
+    tags=["health"],
     dependencies=[Depends(verify_api_key)],
 )
 
