@@ -3,7 +3,6 @@ import os
 import sys
 
 def main():
-    # Config path - we run from /app/nanobot
     config_path = "/app/nanobot/config.json"
     resolved_path = "/app/nanobot/config.resolved.json"
     
@@ -60,11 +59,9 @@ def main():
     print(f"--- LLM API Key set: {bool(qwen_api_key)} ---")
     print(f"--- WebChat Port: {webchat_port} ---")
     print(f"--- Config written to: {resolved_path} ---")
-    print(f"--- Config also written to: {home_config_path} ---")
     print(f"--- STARTING GATEWAY ---")
     sys.stdout.flush()
 
-    # Launch nanobot gateway with absolute paths
     os.execvp("nanobot", ["nanobot", "gateway", "--config", resolved_path, "--workspace", "/app/nanobot/workspace"])
 
 if __name__ == "__main__":
