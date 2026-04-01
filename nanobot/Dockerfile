@@ -1,5 +1,4 @@
 # Multi-stage build for nanobot
-# Stage 1: Build with uv
 FROM ghcr.io/astral-sh/uv:python3.11-bookworm-slim AS builder
 
 WORKDIR /app
@@ -10,7 +9,7 @@ COPY nanobot-websocket-channel/nanobot_webchat ./nanobot-websocket-channel/nanob
 
 WORKDIR /app/nanobot-websocket-channel
 
-# Install nanobot-websocket-channel plugin (this also installs nanobot-ai dependency)
+# Install nanobot-websocket-channel plugin
 RUN uv pip install --system -e .
 
 # Install MCP servers
@@ -21,9 +20,6 @@ RUN uv pip install --system -e .
 
 WORKDIR /app
 COPY mcp/observability_server.py ./mcp/observability_server.py
-
-# Install observability as a module
-RUN uv pip install --system -e ./mcp 2>/dev/null || true
 
 # Stage 2: Runtime
 FROM python:3.11-slim
@@ -39,7 +35,7 @@ COPY nanobot/config.json ./
 COPY nanobot/entrypoint.py ./
 COPY nanobot/pyproject.toml ./
 
-# Copy MCP servers source (for cwd-based execution)
+# Copy MCP servers source
 COPY nanobot/mcp ./mcp
 
 # Copy workspace
@@ -51,7 +47,7 @@ COPY nanobot-websocket-channel/nanobot_webchat /app/nanobot-websocket-channel/na
 # Copy observability server
 COPY mcp/observability_server.py /app/mcp/observability_server.py
 
-# Set PYTHONPATH to include the webchat plugin and mcp
+# Set PYTHONPATH
 ENV PYTHONPATH="/app/nanobot-websocket-channel:/app/mcp:${PYTHONPATH}"
 
 CMD ["python", "entrypoint.py"]

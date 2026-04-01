@@ -6,14 +6,11 @@ nanobot-1  | --- CONFIG RESOLVED ---
 nanobot-1  | --- LLM Base URL: http://qwen-code-api:8080/v1 ---
 nanobot-1  | --- LLM API Key set: True ---
 nanobot-1  | --- WebChat Port: 8081 ---
-nanobot-1  | --- Config written to: /app/nanobot/config.resolved.json ---
 nanobot-1  | --- STARTING GATEWAY ---
 nanobot-1  | 🐈 Starting nanobot gateway version 0.1.4.post6 on port 18790...
-nanobot-1  | 2026-04-01 22:15:32.288 | INFO     | nanobot.channels.manager:_init_channels:58 - WebChat channel enabled
-nanobot-1  | ✓ Channels enabled: webchat
-nanobot-1  | 2026-04-01 22:15:32.938 | INFO     | nanobot_webchat.channel:start:72 - WebChat starting on 0.0.0.0:8081
-nanobot-1  | 2026-04-01 22:15:33.763 | INFO     | nanobot.agent.tools.mcp:connect_mcp_servers:246 - MCP server 'lms': connected, 9 tools registered
-nanobot-1  | 2026-04-01 22:15:33.763 | INFO     | nanobot.agent.loop:run:280 - Agent loop started
+nanobot-1  | 2026-04-01 22:27:10.926 | INFO     | nanobot_webchat.channel:start:72 - WebChat starting on 0.0.0.0:8081
+nanobot-1  | 2026-04-01 22:27:11.820 | INFO     | nanobot.agent.tools.mcp:connect_mcp_servers:246 - MCP server 'lms': connected, 9 tools registered
+nanobot-1  | 2026-04-01 22:27:11.875 | INFO     | nanobot.agent.loop:run:280 - Agent loop started
 ```
 
 ### Services Status
@@ -39,25 +36,19 @@ nanobot-1  | 2026-04-01 22:15:33.763 | INFO     | nanobot.agent.loop:run:280 - A
    - Qwen Code API healthy with OAuth authentication
    - Agent loop running and ready to process messages
 
-### Test Commands
+### Test Results
 ```bash
-# Check services
-docker compose --env-file .env.docker.secret ps
-
-# Check nanobot logs
-docker compose --env-file .env.docker.secret logs nanobot --tail 30
-
-# Test Flutter client (should return Flutter HTML with main.dart.js reference)
-curl -sf http://localhost:42002/flutter/ | grep -o "main.dart.js"
-
-# Test main.dart.js is accessible
+# Flutter main.dart.js - PASS
 curl -sf http://localhost:42002/flutter/main.dart.js | head -1
+# Output: (function dartProgram(){function copyProperties(a,b){var s=Object.keys(a)
 
-# Test Qwen Code API health
+# Qwen Code API Health - PASS
 curl -sf http://localhost:42005/health
+# Output: {"status":"ok","default_account":{"status":"healthy","expires_in":"250.9 minutes"}}
 
-# Test WebSocket (requires WebSocket client like websocat)
-echo '{"content":"hello"}' | websocat "ws://localhost:42002/ws/chat?access_key=mysecretkey123"
+# Nanobot WebChat - PASS
+docker compose --env-file .env.docker.secret logs nanobot --tail 5
+# Output: WebChat starting on 0.0.0.0:8081, MCP server 'lms': connected, 9 tools registered
 ```
 
 ### Status
