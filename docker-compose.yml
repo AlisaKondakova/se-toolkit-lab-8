@@ -43,15 +43,41 @@ services:
     image: se-toolkit-lab-8-backend
     build: ./backend
     environment:
-      DATABASE_URL: sqlite+aiosqlite:///app/data.db
-      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+      NAME: backend
+      DEBUG: "false"
+      ADDRESS: 0.0.0.0
+      PORT: 42002
+      RELOAD: "false"
+      UVICORN_HOST: 0.0.0.0
+      UVICORN_PORT: 42002
+      UVICORN_RELOAD: "false"
+      LMS_API_KEY: ${LMS_API_KEY:-}
+      BACKEND_ENABLE_INTERACTIONS: "true"
+      BACKEND_ENABLE_LEARNERS: "true"
+      CORS_ORIGINS: '["*"]'
+      AUTOCHECKER_API_URL: https://auche.namaz.live
+      AUTOCHECKER_API_LOGIN: a.kondakova@innopolis.university
+      AUTOCHECKER_API_PASSWORD: AlisaKondakovadbsjakxn
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: lms
+      DB_USER: postgres
+      DB_PASSWORD: postgres
       OTEL_SERVICE_NAME: backend
+      OTEL_TRACES_EXPORTER: otlp
+      OTEL_METRICS_EXPORTER: none
+      OTEL_LOGS_EXPORTER: otlp
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+      OTEL_EXPORTER_OTLP_PROTOCOL: grpc
+      OTEL_PYTHON_LOG_CORRELATION: "true"
+      DATABASE_URL: sqlite+aiosqlite:///app/data.db
     volumes:
       - backend-data:/app
     networks:
       - lms-network
     depends_on:
       - otel-collector
+      - postgres
 
   qwen-code-api:
     image: se-toolkit-lab-8-qwen-code-api:latest
@@ -110,6 +136,22 @@ services:
     networks:
       - lms-network
 
+  postgres:
+    image: postgres:18.3-alpine
+    environment:
+      POSTGRES_DB: lms
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - lms-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d lms"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
 networks:
   lms-network:
     driver: bridge
@@ -122,4 +164,6 @@ volumes:
   victorialogs-data:
     driver: local
   victoriatraces-data:
+    driver: local
+  postgres-data:
     driver: local

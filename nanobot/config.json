@@ -36,11 +36,11 @@
       },
       "observability": {
         "command": "python",
-        "args": ["-m", "observability_server"],
-        "cwd": "/app/mcp",
+        "args": ["/app/nanobot/mcp/mcp_observability/server.py"],
+        "cwd": "/app/nanobot/mcp",
         "env": {
           "VICTORIALOGS_URL": "http://victorialogs:9428",
-          "VICTORIATRACES_URL": "http://victoriatraces:10428"
+          "VICTORIATRACES_URL": "http://victoriatraces:8428"
         }
       }
     }
