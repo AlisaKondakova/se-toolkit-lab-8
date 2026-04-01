@@ -183,6 +183,45 @@ The skill teaches the agent to:
 
 ## Task 2B — Web client
 
+### Verification Steps
+1. **Flutter Client**: Accessible at http://localhost:42002/flutter/
+   - Flutter web app built successfully with main.dart.js
+   - Connects to WebSocket endpoint with access key
+
+2. **WebSocket Endpoint**: Available at ws://localhost:42002/ws/chat?access_key=mysecretkey123
+   - Protected by NANOBOT_ACCESS_KEY
+   - Proxied through Caddy to nanobot:8081
+
+3. **Agent Response**: 
+   - WebChat channel enabled and listening
+   - LMS MCP server connected with 9 tools
+   - Qwen Code API healthy with OAuth authentication
+   - Agent loop running and ready to process messages
+
+### Test Results
+```<img width="1920" height="1200" alt="toolkit" src="https://github.com/user-attachments/assets/e9e62380-0079-4b09-9892-747759fc9982" />
+bash
+
+# Flutter main.dart.js - PASS
+curl -sf http://localhost:42002/flutter/main.dart.js | head -1
+# Output: (function dartProgram(){function copyProperties(a,b){var s=Object.keys(a)
+
+# Qwen Code API Health - PASS
+curl -sf http://localhost:42005/health
+# Output: {"status":"ok","default_account":{"status":"healthy","expires_in":"250.9 minutes"}}
+
+# Nanobot WebChat - PASS
+docker compose --env-file .env.docker.secret logs nanobot --tail 5
+# Output: WebChat starting on 0.0.0.0:8081, MCP server 'lms': connected, 9 tools registered
+```
+
+### Status
+- ✅ Nanobot Dockerfile, compose services, and Caddy routes configured
+- ✅ Flutter serves real content (main.dart.js present at /flutter/)
+- ✅ WebSocket at /ws/chat accepts connections with correct NANOBOT_ACCESS_KEY
+- ✅ Qwen Code API healthy with OAuth authentication
+- ✅ Agent ready to respond through WebSocket
+- ✅ REPORT.md updated with checkpoint evidence
 **Flutter web client accessible at:** `http://localhost:42002/flutter/`
 
 **WebSocket endpoint test:**
