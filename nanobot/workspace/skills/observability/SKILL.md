@@ -29,6 +29,21 @@ You have access to observability tools that let you query VictoriaLogs and Victo
 
 ## When to Use
 
+### One-Shot Investigation Flow (for "What went wrong?" or "Check system health")
+
+When the user asks about a failure or system health, follow this exact sequence:
+
+1. **First**: Call `logs_error_count(service="*", hours=1)` to get an overview
+2. **If errors found**: Call `logs_search(query="level:error", limit=20)` to see recent errors
+3. **Look for trace_id** in the error logs (search for patterns like `trace_id=...` or `traceID`)
+4. **If trace_id found**: Call `traces_get(trace_id="...")` to fetch full trace details
+5. **Summarize findings** in plain language:
+   - What failed (from logs)
+   - Where it failed (from trace spans)
+   - Root cause hypothesis
+
+### Other Scenarios
+
 1. **User asks about errors**: "Any errors?", "What failed?", "Show me errors"
    - First call `logs_error_count(service="*", hours=1)` to get overview
    - Then call `logs_search(query="level:error", limit=10)` to see details

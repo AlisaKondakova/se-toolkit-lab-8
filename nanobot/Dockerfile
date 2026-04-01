@@ -16,9 +16,10 @@ RUN uv pip install --system -e .
 WORKDIR /app/nanobot/mcp
 COPY nanobot/mcp/pyproject.toml ./
 COPY nanobot/mcp/mcp_lms ./mcp_lms
-COPY nanobot/mcp/mcp_observability ./mcp_observability
 RUN uv pip install --system -e .
-RUN uv pip install --system -e ./mcp_observability
+
+WORKDIR /app
+COPY mcp/observability_server.py ./mcp/observability_server.py
 
 # Stage 2: Runtime
 FROM python:3.11-slim
@@ -34,7 +35,7 @@ COPY nanobot/config.json ./
 COPY nanobot/entrypoint.py ./
 COPY nanobot/pyproject.toml ./
 
-# Copy MCP servers source (for cwd-based execution)
+# Copy MCP servers source
 COPY nanobot/mcp ./mcp
 
 # Copy workspace
@@ -43,7 +44,10 @@ COPY nanobot/workspace ./workspace
 # Copy the webchat plugin source for runtime
 COPY nanobot-websocket-channel/nanobot_webchat /app/nanobot-websocket-channel/nanobot_webchat
 
-# Set PYTHONPATH to include the webchat plugin and mcp directory
-ENV PYTHONPATH="/app/nanobot-websocket-channel:/app/nanobot/mcp:${PYTHONPATH}"
+# Copy observability server
+COPY mcp/observability_server.py /app/mcp/observability_server.py
+
+# Set PYTHONPATH
+ENV PYTHONPATH="/app/nanobot-websocket-channel:/app/mcp:${PYTHONPATH}"
 
 CMD ["python", "entrypoint.py"]
