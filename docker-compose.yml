@@ -20,7 +20,8 @@ services:
       - qwen-code-api
 
   client-web-flutter:
-    build: ./nanobot-websocket-channel/client-web-flutter
+    build:
+      context: ./nanobot-websocket-channel/client-web-flutter
     networks:
       - lms-network
 
@@ -30,7 +31,6 @@ services:
       - "42002:80"
     volumes:
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
-      - ./nanobot-websocket-channel/client-web-flutter/web:/srv/flutter:ro
     environment:
       NANOBOT_WEBCHAT_CONTAINER_PORT: 8081
     depends_on:
@@ -44,10 +44,14 @@ services:
     build: ./backend
     environment:
       DATABASE_URL: sqlite+aiosqlite:///app/data.db
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+      OTEL_SERVICE_NAME: backend
     volumes:
       - backend-data:/app
     networks:
       - lms-network
+    depends_on:
+      - otel-collector
 
   qwen-code-api:
     image: se-toolkit-lab-8-qwen-code-api:latest
@@ -72,10 +76,48 @@ services:
     networks:
       - lms-network
 
+  # VictoriaLogs - log storage
+  victorialogs:
+    image: victoriametrics/victoria-logs:latest
+    ports:
+      - "9428:9428"
+    volumes:
+      - victorialogs-data:/victoria-logs-data
+    networks:
+      - lms-network
+
+  # VictoriaTraces - trace storage
+  victoriatraces:
+    image: victoriametrics/victoria-traces:latest
+    ports:
+      - "10428:8428"
+    volumes:
+      - victoriatraces-data:/victoria-traces-data
+    networks:
+      - lms-network
+
+  # OpenTelemetry Collector - collects and forwards telemetry
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.110.0
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./otel/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
+    depends_on:
+      - victorialogs
+      - victoriatraces
+    networks:
+      - lms-network
+
 networks:
   lms-network:
     driver: bridge
 
 volumes:
   backend-data:
+    driver: local
+  client-web-flutter:
+    driver: local
+  victorialogs-data:
+    driver: local
+  victoriatraces-data:
     driver: local
