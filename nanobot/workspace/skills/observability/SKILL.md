@@ -1,77 +1,72 @@
+---
+name: observability
+description: Use observability MCP tools to investigate system health and errors
+always: true
+---
+
 # Observability Skill
 
-You have access to observability tools that let you query VictoriaLogs and VictoriaTraces.
+Use observability MCP tools to investigate system health, errors, and failures.
 
 ## Available Tools
 
-### Log Tools (VictoriaLogs)
+- `logs_search` — Search logs using LogsQL query. Returns matching log entries.
+- `logs_error_count` — Count errors for a service over a time window.
+- `traces_list` — List recent traces for a service.
+- `traces_get` — Fetch a specific trace by ID.
 
-- **logs_search(query, limit)**: Search logs using LogsQL
-  - `query`: LogsQL query string (e.g., "level:error", "_stream:{service=\"backend\"}", "db_query AND error")
-  - `limit`: Max entries to return (default 100)
-  - Use this when user asks about errors, warnings, or specific events
+## Strategy
 
-- **logs_error_count(service, hours)**: Count errors per service
-  - `service`: Service name or "*" for all (default "*")
-  - `hours`: Time window in hours (default 1)
-  - Use this when user asks "any errors?" or "how many errors?"
+### When the user asks "What went wrong?" or "Check system health":
+1. **Start with `logs_error_count`** to see if there are recent errors
+   - Use a narrow time window like "10m" for recent issues
+   - Focus on the LMS backend service: "Learning Management Service"
+2. **Use `logs_search`** to inspect error details
+   - Query: `_time:10m service.name:"Learning Management Service" severity:ERROR`
+   - Look for the `trace_id` field in error logs
+   - Note the error message and exception type
+3. **If you find a trace_id, use `traces_get`** to inspect the full trace
+   - This shows the complete request flow and where it failed
+   - Identify which span failed and what operation was being performed
+4. **Summarize findings as one coherent investigation**
+   - Don't dump raw JSON
+   - Explain what went wrong in plain language
+   - Cite both log evidence AND trace evidence
+   - Mention the affected service, root failing operation, and error type
+   - Note any discrepancy between what logs show vs what HTTP response was returned
+### When the user asks about errors or system health:
 
-### Trace Tools (VictoriaTraces)
+1. **Start with `logs_error_count`** to see if there are recent errors
+   - Use a narrow time window like "10m" or "1h" for recent issues
+   - Focus on the LMS backend service: "Learning Management Service"
 
-- **traces_list(service, limit)**: List recent traces for a service
-  - `service`: Service name (default "backend")
-  - `limit`: Max traces to return (default 10)
-  - Use this to see recent request flows
+2. **If errors exist, use `logs_search`** to inspect them
+   - Query: `_time:10m service.name:"Learning Management Service" severity:ERROR`
+   - Look for the `trace_id` field in error logs
 
-- **traces_get(trace_id)**: Fetch full trace details
-  - `trace_id`: The trace ID to fetch
-  - Use this when you find a trace ID in logs and need full context
+3. **If you find a trace_id, use `traces_get`** to inspect the full trace
+   - This shows the complete request flow and where it failed
 
-## When to Use
+4. **Summarize findings concisely**
+   - Don't dump raw JSON
+   - Explain what went wrong in plain language
+   - Mention the affected service, error type, and timeframe
 
-### One-Shot Investigation Flow (for "What went wrong?" or "Check system health")
+### When the user asks about traces:
 
-When the user asks about a failure or system health, follow this exact sequence:
+1. Use `traces_list` to find recent traces for the service
+2. Use `traces_get` to fetch details of a specific trace
+3. Explain the span hierarchy and timing
 
-1. **First**: Call `logs_error_count(service="*", hours=1)` to get an overview
-2. **If errors found**: Call `logs_search(query="level:error", limit=20)` to see recent errors
-3. **Look for trace_id** in the error logs (search for patterns like `trace_id=...` or `traceID`)
-4. **If trace_id found**: Call `traces_get(trace_id="...")` to fetch full trace details
-5. **Summarize findings** in plain language:
-   - What failed (from logs)
-   - Where it failed (from trace spans)
-   - Root cause hypothesis
+### Example queries:
 
-### Other Scenarios
+- **Count recent errors:** `logs_error_count(service="Learning Management Service", time_range="10m")`
+- **Search error logs:** `logs_search(query='_time:10m service.name:"Learning Management Service" severity:ERROR')`
+- **Get trace details:** `traces_get(trace_id="abc123...")`
 
-1. **User asks about errors**: "Any errors?", "What failed?", "Show me errors"
-   - First call `logs_error_count(service="*", hours=1)` to get overview
-   - Then call `logs_search(query="level:error", limit=10)` to see details
+### Response style:
 
-2. **User asks about a specific service**: "Is backend working?"
-   - Call `logs_search(query="_stream:{service=\"backend\"} AND level:error", limit=10)`
-   - Call `traces_list(service="backend", limit=5)` to see recent traces
-
-3. **User asks about a request flow**: "What happened to my request?"
-   - Call `traces_list(service="backend", limit=5)` to find recent traces
-   - If you find a relevant trace, call `traces_get(trace_id=...)` for details
-
-4. **Debugging a failure**: "Why did this fail?"
-   - Search for errors: `logs_search(query="level:error", limit=20)`
-   - Look for trace IDs in error logs
-   - Fetch the trace: `traces_get(trace_id=...)`
-
-## Response Style
-
-- Summarize findings concisely — don't dump raw JSON
-- Highlight the key issue (e.g., "Found 5 errors in backend in the last hour")
-- If you find a trace ID, mention it and offer to fetch details
-- If no errors found, say so clearly (e.g., "No errors found in the last hour")
-
-## Example LogsQL Queries
-
-- All errors: `level:error`
-- Backend errors: `level:error AND service="backend"`
-- Database errors: `db_query AND error`
-- Specific time: `level:error AND _time > now()-1h`
-- By stream: `_stream:{service="backend"}`
+- Lead with the answer: "Yes, there are X errors in the last 10 minutes" or "No errors found"
+- If errors exist, summarize the root cause
+- If you found a trace, explain what it shows
+- Keep it brief — 2-4 sentences unless the user asks for more detail

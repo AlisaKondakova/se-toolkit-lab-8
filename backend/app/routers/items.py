@@ -21,26 +21,18 @@ async def get_items(session: AsyncSession = Depends(get_session)):
     """Get all items."""
     try:
         return await read_items(session)
-    except asyncpg.PostgresConnectionError as exc:
-        # Database connection error - return 500
-        logger.error(f"Database connection failed: {exc}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Database connection error: {str(exc)}",
-        ) from exc
-    except SQLAlchemyError as exc:
-        # Database error - return 500
-        logger.error(f"Database error: {exc}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Database error: {str(exc)}",
-        ) from exc
     except Exception as exc:
-        # Any other error - return 500
-        logger.exception("Failed to fetch items: %s", str(exc))
+        logger.warning(
+            "items_list_failed_as_not_found",
+            extra={"event": "items_list_failed_as_not_found"},
+        )
+        logger.error(
+            "items_list_failed",
+            extra={"event": "items_list_failed", "error": str(exc)},
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error fetching items: {str(exc)}",
+            detail=f"Failed to retrieve items: {str(exc)}",
         ) from exc
 
 
