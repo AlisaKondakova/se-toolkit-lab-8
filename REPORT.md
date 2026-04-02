@@ -1,5 +1,9 @@
 # Lab 8 — Report
 
+
+
+
+
 Paste your checkpoint evidence below. Add screenshots as image files in the repo and reference them with `![description](path)`.
 
 ## Task 1A — Bare agent
