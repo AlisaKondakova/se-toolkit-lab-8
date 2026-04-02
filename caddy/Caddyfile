@@ -19,4 +19,36 @@
     handle_path /utils/victoriatraces/* {
         reverse_proxy http://victoriatraces:8428
     }
+
+    handle /items* {
+        reverse_proxy http://backend:42002
+    }
+
+    handle /health* {
+        reverse_proxy http://backend:42002
+    }
+
+    handle /interactions* {
+        reverse_proxy http://backend:42002
+    }
+
+    handle /learners* {
+        reverse_proxy http://backend:42002
+    }
+
+    handle /pipeline* {
+        reverse_proxy http://backend:42002
+    }
+
+    handle /analytics* {
+        reverse_proxy http://backend:42002
+    }
+
+    handle /docs {
+        reverse_proxy http://backend:42002
+    }
+
+    handle /openapi.json {
+        reverse_proxy http://backend:42002
+    }
 }
