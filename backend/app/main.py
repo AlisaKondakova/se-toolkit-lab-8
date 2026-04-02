@@ -24,18 +24,28 @@ async def lifespan(app: FastAPI):
     # (via OTEL_LOGS_EXPORTER=otlp). We only need to fix uvicorn.access, which has
     # propagate=False by default, so its HTTP access lines reach the OTel handler.
     logging.getLogger("uvicorn.access").propagate = True
-    
-    # Check database connection at startup
-    from sqlmodel import select, SQLModel
-    from app.database import engine
-    async with engine.connect() as conn:
-        try:
-            await conn.execute(select(1))
+
+    # Check database connection at startup and create tables
+    from sqlmodel import select, SQLModel, create_engine
+    from app.database import get_database_url
+    # Import all models to register them with SQLModel.metadata
+    from app.models import interaction, item, learner  # noqa: F401
+
+    # Create a sync engine just for table creation
+    sync_engine = create_engine(get_database_url().replace("+asyncpg", ""))
+    try:
+        with sync_engine.connect() as conn:
+            conn.execute(select(1))
             logger.info("Database connection successful")
-        except Exception as exc:
-            logger.error(f"Database connection failed: {exc}")
-            raise
-    
+            # Create all tables if they don't exist
+            SQLModel.metadata.create_all(conn)
+            logger.info("Database tables created/verified")
+    except Exception as exc:
+        logger.error(f"Database connection failed: {exc}")
+        raise
+    finally:
+        sync_engine.dispose()
+
     yield
 
 

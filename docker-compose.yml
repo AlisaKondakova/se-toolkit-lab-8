@@ -45,6 +45,8 @@ services:
       context: ./backend
       additional_contexts:
         workspace: .
+    env_file:
+      - .env.docker.secret
     environment:
       NAME: backend
       DEBUG: "false"
