@@ -27,11 +27,11 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 COPY . /app/backend
 
-# Copy main.py separately to ensure middleware changes are picked up
-COPY app/main.py /app/backend/app/main.py
-
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --package lms-backend
+
+# Copy main.py AFTER uv sync to ensure middleware changes are picked up
+COPY app/main.py /app/backend/app/main.py
 
 RUN /app/.venv/bin/opentelemetry-bootstrap -a install
 
