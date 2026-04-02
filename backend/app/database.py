@@ -16,15 +16,12 @@ def get_database_url() -> str:
     )
 
 
-engine = create_async_engine(get_database_url(), pool_pre_ping=True)
+engine = create_async_engine(get_database_url())
 
 
 async def get_session() -> AsyncGenerator[AsyncSession]:
-    async with AsyncSession(engine) as session:
-        # Verify database connection before yielding session
-        try:
-            await session.execute(text("SELECT 1"))
-        except Exception as exc:
-            # Re-raise to trigger exception handler in routes
-            raise exc
+    # Create a new connection for each request to detect failures immediately
+    async with AsyncSession(engine, expire_on_commit=False) as session:
+        # Test connection before yielding - this will raise if postgres is down
+        await session.execute(text("SELECT 1"))
         yield session
