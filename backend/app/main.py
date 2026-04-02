@@ -74,6 +74,23 @@ async def log_requests(request: Request, call_next: RequestResponseEndpoint) -> 
         extra={"event": "request_started", "method": request.method, "path": request.url.path},
     )
     t0 = time.perf_counter()
+    
+    # Check database connectivity before processing request
+    from app.database import engine
+    from sqlalchemy import text
+    try:
+        async with engine.connect() as conn:
+            await conn.execute(text("SELECT 1"))
+    except Exception as exc:
+        logger.error(
+            "database_connection_failed",
+            extra={"event": "database_connection_failed", "error": str(exc)},
+        )
+        return JSONResponse(
+            status_code=500,
+            content={"detail": f"Database connection failed: {str(exc)}"},
+        )
+    
     response = await call_next(request)
     duration_ms = round((time.perf_counter() - t0) * 1000)
     level = logging.ERROR if response.status_code >= 500 else logging.INFO
