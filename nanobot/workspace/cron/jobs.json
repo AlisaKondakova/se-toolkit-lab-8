@@ -7,6 +7,8 @@
       "enabled": true,
       "schedule": {
         "kind": "cron",
+        "atMs": null,
+        "everyMs": null,
         "expr": "*/2 * * * *",
         "tz": "UTC"
       },
@@ -17,7 +19,29 @@
         "channel": "webchat",
         "to": "test-session"
       },
-      "state": {}
+      "state": {
+        "nextRunAtMs": 1775127960000,
+        "lastRunAtMs": 1775127840002,
+        "lastStatus": "ok",
+        "lastError": null,
+        "runHistory": [
+          {
+            "runAtMs": 1775127720002,
+            "status": "ok",
+            "durationMs": 63532,
+            "error": null
+          },
+          {
+            "runAtMs": 1775127840002,
+            "status": "ok",
+            "durationMs": 19707,
+            "error": null
+          }
+        ]
+      },
+      "createdAtMs": 0,
+      "updatedAtMs": 1775127859709,
+      "deleteAfterRun": false
     }
   ]
 }
