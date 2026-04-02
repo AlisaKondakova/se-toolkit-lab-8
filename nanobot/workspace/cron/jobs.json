@@ -1,4 +1,23 @@
 {
   "version": 1,
-  "jobs": []
+  "jobs": [
+    {
+      "id": "health-check",
+      "name": "Health check",
+      "enabled": true,
+      "schedule": {
+        "kind": "cron",
+        "expr": "*/2 * * * *",
+        "tz": "UTC"
+      },
+      "payload": {
+        "kind": "agent_turn",
+        "message": "Check for backend errors in the last 2 minutes and post a summary",
+        "deliver": true,
+        "channel": "webchat",
+        "to": "test-session"
+      },
+      "state": {}
+    }
+  ]
 }

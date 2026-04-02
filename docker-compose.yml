@@ -13,6 +13,8 @@ services:
       QWEN_BASE_URL: http://qwen-code-api:8080/v1
       GATEWAY_BASE_URL: http://backend:42002
       LMS_API_KEY: ${LMS_API_KEY:-}
+    volumes:
+      - ./nanobot/workspace:/app/nanobot/workspace
     networks:
       - lms-network
     depends_on:
