@@ -30,11 +30,6 @@ COPY . /app/backend
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --package lms-backend
 
-# Copy main.py AFTER uv sync to ensure middleware changes are picked up
-COPY app/main.py /app/backend/app/main.py
-
-RUN /app/.venv/bin/opentelemetry-bootstrap -a install
-
 # ---
 # Stage 2: use a final image without uv
 # ---
@@ -60,7 +55,6 @@ COPY --from=builder --chown=nonroot:nonroot /app /app
 
 # Place executables in the environment at the front of the path
 ENV PATH="/app/.venv/bin:$PATH"
-ENV PYTHONPATH="/app/backend"
 
 # Use the non-root user to run our application
 USER nonroot
@@ -69,4 +63,4 @@ USER nonroot
 WORKDIR /app
 
 # Run the FastAPI application
-CMD ["opentelemetry-instrument", "uvicorn", "app.main:app"]
+CMD ["opentelemetry-instrument", "uvicorn", "lms_backend.main:app"]
