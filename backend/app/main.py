@@ -75,12 +75,18 @@ async def log_requests(request: Request, call_next: RequestResponseEndpoint) -> 
     )
     t0 = time.perf_counter()
     
-    # Check database connectivity before processing request
-    from app.database import engine
-    from sqlalchemy import text
+    # Check database connectivity using direct asyncpg connection (no pooling)
+    import asyncpg
     try:
-        async with engine.connect() as conn:
-            await conn.execute(text("SELECT 1"))
+        conn = await asyncpg.connect(
+            host=settings.db_host,
+            port=settings.db_port,
+            user=settings.db_user,
+            password=settings.db_password,
+            database=settings.db_name,
+            timeout=2,  # Short timeout for quick failure
+        )
+        await conn.close()
     except Exception as exc:
         logger.error(
             "database_connection_failed",
