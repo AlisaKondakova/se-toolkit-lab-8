@@ -2,13 +2,16 @@
 
 import logging
 
+import asyncpg
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import SQLAlchemyError
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.database import get_session
 from app.db.items import create_item, read_item, read_items, update_item
 from app.models.item import ItemCreate, ItemRecord, ItemUpdate
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -19,25 +22,42 @@ async def get_items(session: AsyncSession = Depends(get_session)):
     try:
         return await read_items(session)
     except Exception as exc:
-        # Log the actual error for debugging
-        logger = logging.getLogger(__name__)
-        logger.exception("Failed to fetch items: %s", str(exc))
-        # Return 500 for database errors, not 404
+        logger.warning(
+            "items_list_failed_as_not_found",
+            extra={"event": "items_list_failed_as_not_found"},
+        )
+        logger.error(
+            "items_list_failed",
+            extra={"event": "items_list_failed", "error": str(exc)},
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Database error: {str(exc)}",
+            detail=f"Failed to retrieve items: {str(exc)}",
         ) from exc
 
 
 @router.get("/{item_id}", response_model=ItemRecord)
 async def get_item(item_id: int, session: AsyncSession = Depends(get_session)):
     """Get a specific item by its id."""
-    item = await read_item(session, item_id)
-    if item is None:
+    try:
+        item = await read_item(session, item_id)
+        if item is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Item not found"
+            )
+        return item
+    except asyncpg.PostgresConnectionError as exc:
+        logger.error(f"Database connection failed: {exc}")
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Item not found"
-        )
-    return item
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database connection error: {str(exc)}",
+        ) from exc
+    except SQLAlchemyError as exc:
+        logger.error(f"Database error: {exc}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database error: {str(exc)}",
+        ) from exc
 
 
 @router.post("/", response_model=ItemRecord, status_code=201)
@@ -51,11 +71,18 @@ async def post_item(body: ItemCreate, session: AsyncSession = Depends(get_sessio
             title=body.title,
             description=body.description,
         )
-    except IntegrityError:
+    except asyncpg.PostgresConnectionError as exc:
+        logger.error(f"Database connection failed: {exc}")
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-            detail="parent_id does not reference an existing item",
-        )
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database connection error: {str(exc)}",
+        ) from exc
+    except SQLAlchemyError as exc:
+        logger.error(f"Database error: {exc}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database error: {str(exc)}",
+        ) from exc
 
 
 @router.put("/{item_id}", response_model=ItemRecord)
@@ -63,11 +90,24 @@ async def put_item(
     item_id: int, body: ItemUpdate, session: AsyncSession = Depends(get_session)
 ):
     """Update an existing item."""
-    item = await update_item(
-        session, item_id=item_id, title=body.title, description=body.description
-    )
-    if item is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Item not found"
+    try:
+        item = await update_item(
+            session, item_id=item_id, title=body.title, description=body.description
         )
-    return item
+        if item is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Item not found"
+            )
+        return item
+    except asyncpg.PostgresConnectionError as exc:
+        logger.error(f"Database connection failed: {exc}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database connection error: {str(exc)}",
+        ) from exc
+    except SQLAlchemyError as exc:
+        logger.error(f"Database error: {exc}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database error: {str(exc)}",
+        ) from exc

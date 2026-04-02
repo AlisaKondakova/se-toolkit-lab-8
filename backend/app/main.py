@@ -74,6 +74,29 @@ async def log_requests(request: Request, call_next: RequestResponseEndpoint) -> 
         extra={"event": "request_started", "method": request.method, "path": request.url.path},
     )
     t0 = time.perf_counter()
+    
+    # Check database connectivity using direct asyncpg connection (no pooling)
+    import asyncpg
+    try:
+        conn = await asyncpg.connect(
+            host=settings.db_host,
+            port=settings.db_port,
+            user=settings.db_user,
+            password=settings.db_password,
+            database=settings.db_name,
+            timeout=2,  # Short timeout for quick failure
+        )
+        await conn.close()
+    except Exception as exc:
+        logger.error(
+            "database_connection_failed",
+            extra={"event": "database_connection_failed", "error": str(exc)},
+        )
+        return JSONResponse(
+            status_code=500,
+            content={"detail": f"Database connection failed: {str(exc)}"},
+        )
+    
     response = await call_next(request)
     duration_ms = round((time.perf_counter() - t0) * 1000)
     level = logging.ERROR if response.status_code >= 500 else logging.INFO
